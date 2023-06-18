@@ -7,6 +7,7 @@ function $$(selector) {
 }
 
 const DEFAULT_DISPLAY = "0";
+const OVERFLOW_SIZE = 17;
 
 const calcState = {
   cur: null,
@@ -31,8 +32,17 @@ function operate(a, b, op) {
   }
 }
 
+function checkOverflow(n) {
+  if (n.length > OVERFLOW_SIZE) {
+    n = "E " + n.substring(n.length - OVERFLOW_SIZE);
+  }
+  return n;
+}
+
 function display(n) {
   const res = $(".calc-res");
+  n = n.toString();
+  n = checkOverflow(n);
   res.textContent = n;
 }
 
