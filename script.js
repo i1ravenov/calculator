@@ -51,7 +51,7 @@ percentButton.addEventListener("click", e => {
     switch (calcState.lastOp) {
       case "+":
       case "-":
-        res = operate(a / 100 * b, a, calcState.lastOp);
+        res = operate(a, a / 100 * b, calcState.lastOp);
         break;
       case "*":
       case "/":
