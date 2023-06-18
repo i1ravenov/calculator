@@ -7,17 +7,18 @@ function $$(selector) {
 }
 
 const DEFAULT_DISPLAY = "0";
+
 const calcState = {
-  currentVal: null,
-  previousVal: null,
-  lastButton: null,
+  cur: null,
+  prev: null,
+  lastOp: null,
 }
-let current = null;
-let previous = null;
 
 display(DEFAULT_DISPLAY);
 
 function operate(a, b, op) {
+  a = +a;
+  b = +b;
   switch (op) {
     case "+":
       return a + b;
@@ -36,32 +37,62 @@ function display(n) {
 }
 
 const numbers = $$(".n");
-const clearButton = $("#clear");
 const operations = $$(".op");
-const equalsSign = $(".eq");
+const equalsButton = $(".eq");
+const clearButton = $("#clear");
+const signButton = $("#sign");
+const percentButton = $("#percent");
+
+percentButton.addEventListener("click", e => {
+  if (calcState.cur) {
+    calcState.cur += "%";
+  }
+});
+
+signButton.addEventListener("click", e => {
+  if (calcState.cur) {
+    calcState.cur = (- +calcState.cur).toString();
+    display(calcState.cur);
+  }
+});
+
+equalsButton.addEventListener("click", e => {
+  if (calcState.prev && calcState.cur) {
+    calcState.cur = operate(calcState.prev, calcState.cur, calcState.lastOp);
+    display(calcState.cur);
+    calcState.prev = null;
+    calcState.lastOp = null;
+  }
+});
 
 clearButton.addEventListener("click", e => {
-  previous = null;
-  current = null;
+  calcState.prev = null;
+  calcState.cur = null;
+  calcState.lastOp = null;
   display(DEFAULT_DISPLAY);
 });
 
 operations.forEach(o => {
   o.addEventListener('click', e => {
     const op = e.target.dataset.op;
-    if (previous) {
-      console.log(operate(previous, current, op));
-      const res = operate(previous, current, op);
-      current = res.toString();
-      display(current);
-      previous = current;
-      current = null;
-    } else {
-      previous = current;
-      current = null;
+    if (!calcState.cur) {
+      calcState.lastOp = op;
+      return;
     }
+    if (calcState.prev && calcState.cur) {
+      const res = operate(calcState.prev, calcState.cur, calcState.lastOp);
+      calcState.cur = res.toString();
+      display(calcState.cur);
+    }
+    calcState.lastOp = op;
+    calcState.prev = calcState.cur;
+    calcState.cur = null;
   })
 });
+
+function isInitialState(state) {
+  return !state.cur || state.cur === "0";
+}
 
 numbers.forEach(n =>
   n.addEventListener("click", e => {
@@ -69,27 +100,29 @@ numbers.forEach(n =>
 
     switch (n) {
       case ".":
-        if (current && current.includes(".")) {
+        if (calcState.cur && calcState.cur.includes(".")) {
           return;
         }
-        if (!current) {
-          current = "0" + n;
+        if (isInitialState(calcState)) {
+          calcState.cur = "0" + n;
           break;
         }
       case "00":
       case "0":
-        if (!current) {
+        if (isInitialState(calcState)) {
+          calcState.cur = "0";
           return;
         }
-        current += n;
+        calcState.cur += n;
         break;
       default:
-        if (!current) {
-          current = n;
+        if (isInitialState(calcState)) {
+          calcState.cur = n;
           break;
         }
-        current += n;
+        calcState.cur += n;
+
     }
-    display(current);
+    display(calcState.cur);
   })
 );
