@@ -44,8 +44,23 @@ const signButton = $("#sign");
 const percentButton = $("#percent");
 
 percentButton.addEventListener("click", e => {
-  if (calcState.cur) {
-    calcState.cur += "%";
+  if (calcState.cur && calcState.prev) {
+    const a = calcState.prev;
+    const b = calcState.cur;
+    let res;
+    switch (calcState.lastOp) {
+      case "+":
+      case "-":
+        res = operate(a / 100 * b, a, calcState.lastOp);
+        break;
+      case "*":
+      case "/":
+        res = operate(a, b / 100, calcState.lastOp);
+        break;
+    }
+    calcState.prev = res;
+    calcState.cur = null;
+    display(res);
   }
 });
 
@@ -111,7 +126,7 @@ numbers.forEach(n =>
       case "0":
         if (isInitialState(calcState)) {
           calcState.cur = "0";
-          return;
+          break;
         }
         calcState.cur += n;
         break;
